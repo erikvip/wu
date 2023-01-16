@@ -1,2 +1,3 @@
-# wu
-Detailed weather forecast from wunderground
+# WU
+## Detailed weather forecast data from wunderground
+
