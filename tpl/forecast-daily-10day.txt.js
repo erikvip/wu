@@ -25,30 +25,29 @@ def fraction(dec):
 		 elif $rem >= 0.86 then "⅞"		 		 
 		 else ""
 		end)|tostring |
-		( if . == "" then "0" else . end) | tostring + "\""
+		( if . == "" then "0" else . end) | tostring + "″"
 	;
 
 def temperatureWidget(low; high):
-	("↑" + (high // "--"|tostring) + "℉ ↓" + (low // "--"|tostring) + "℉")
+	("↑" + (high // "--"|tostring) + "℉↓" + (low // "--"|tostring) + "℉")
 	;
 def precipChanceWidget(per):
-	("☔" + 
+	(
 		(if per == 100 	then "💯 " 
-		elif per < 10 	then " \(per)%"
-		else 			"\(per)%" 
+		elif per < 10 	then " \(per)٪"
+		else 			"\(per)٪" 
 		end)
 	)		
 	;
-#def qpfWidget(amt): "🌧:\(amt)\"";
+
 #def qpfWidget(amt): "🌧:\(amt) "+fraction(amt);
-def qpfWidget(amt): "🌧 :"+fraction(amt);
-#def qpfSnowWidget(amt): "❄:\(amt)\"";
+def qpfWidget(amt): ""+fraction(amt);
 #def qpfSnowWidget(amt): "❄:\(amt) "+fraction(amt);
 def qpfSnowWidget(amt): "❄:"+fraction(amt);
 def cloudCoverWidget(per):
 	("⛅" + 
 		(if per == 100 then "💯" 
-		else (per//"--" | tostring + "%")
+		else (per//"--" | tostring + "٪")
 		end) 
 	)
 	;
@@ -100,12 +99,11 @@ def moonPhaseWidget(code):
 		validTimeLocal 				: $w[].validTimeLocal[.],
 		validTimeUtc 				: $w[].validTimeUtc[.],
 		temperatureWidget			: temperatureWidget($w[].temperatureMin[.]; $w[].temperatureMax[.]),
-#		precipChanceWidget			: precipChanceWidget($w[].precipChance[.]),
 		qpfWidget					: qpfWidget($w[].qpf[.]),
 		qpfSnowWidget				: qpfSnowWidget($w[].qpfSnow[.]),		
 		day: {
 			cloudCover				: $w[].daypart[].cloudCover[(.+.)],
-			cloudCoverWidget		: cloudCoverWidget($w[].daypart[].cloudCover[(.+.)]),
+			
 			dayOrNight				: $w[].daypart[].dayOrNight[(.+.)],
 			daypartName				: $w[].daypart[].daypartName[(.+.)],
 			iconCode				: $w[].daypart[].iconCode[(.+.)],
@@ -132,7 +130,10 @@ def moonPhaseWidget(code):
 			windSpeed				: $w[].daypart[].windSpeed[(.+.)],
 			wxPhraseLong			: $w[].daypart[].wxPhraseLong[(.+.)],
 			wxPhraseShort			: $w[].daypart[].wxPhraseShort[(.+.)],
+			precipChanceWidget		: precipChanceWidget($w[].daypart[].precipChance[(.+.)]),
 			qpfWidget				: qpfWidget($w[].daypart[].qpf[(.+.)]),
+			qpfSnowWidget			: qpfSnowWidget($w[].daypart[].qpfSnow[(.+.)]),
+			cloudCoverWidget		: cloudCoverWidget($w[].daypart[].cloudCover[(.+.)]),
 		},
 		night: {
 			cloudCover				: $w[].daypart[].cloudCover[(.+.+1)],
@@ -162,6 +163,10 @@ def moonPhaseWidget(code):
 			windSpeed				: $w[].daypart[].windSpeed[(.+.+1)],
 			wxPhraseLong			: $w[].daypart[].wxPhraseLong[(.+.+1)],
 			wxPhraseShort			: $w[].daypart[].wxPhraseShort[(.+.+1)],
+			precipChanceWidget		: precipChanceWidget($w[].daypart[].precipChance[(.+.+1)]),
+			qpfWidget				: qpfWidget($w[].daypart[].qpf[(.+.+1)]),
+			qpfSnowWidget			: qpfSnowWidget($w[].daypart[].qpfSnow[(.+.+1)]),
+			cloudCoverWidget		: cloudCoverWidget($w[].daypart[].cloudCover[(.+.+1)]),
 		}
 	}
 

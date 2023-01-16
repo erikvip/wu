@@ -57,9 +57,9 @@ main() {
 		
 	# Check expiration of locally cached weather data
 	_exp=$(cat data/${_state}-${_loc}.json | jq '[ .[] | select(.type=="v3/wx/observations/current") | .data .expirationTimeUtc ] | max');
-	if [[ "$_exp" < `date --utc '+%s'` ]]; then	
-		stderr "Data expired for ${_loc}"
-	#	rm "data/${_loc}*"
+	_cur=$(date --utc '+%s');
+	if [[ "$_exp" < "$_cur" ]]; then	
+		stderr "Data expired for ${_loc}. Exp: $_exp Cur: "
 		fetch_data
 	fi
 

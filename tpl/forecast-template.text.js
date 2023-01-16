@@ -17,20 +17,17 @@
 	else .moonPhaseCode 
 	end
 ) 
-+ "\(.validTimeUtc|strftime("%d %a")) " +
-" \(.temperatureWidget), \(.qpfWidget) \(.qpfSnowWidget)"
++ "\(.validTimeUtc|strftime("%d %a"))" +
+" \(.temperatureWidget) ⌮  🌧:\(.qpfWidget)\(.qpfSnowWidget)"
 
-+", ☔" + 
-	(if .night.precipChance == 100 
-		then "💯 " 
-	elif .night.precipChance < 10 
-		then " \(.night.precipChance)%" 
-	else "\(.night.precipChance)%" end)
+#+ "☔" + 
 
-#+"☉ \(.day.qpfWidget)"
++",㏂\(.day.cloudCoverWidget) \(.day.precipChanceWidget) 🌧:\(.day.qpfWidget)\(.day.qpfSnowWidget)"
++",㏘\(.night.cloudCoverWidget) \(.night.precipChanceWidget) 🌧:\(.night.qpfWidget)\(.night.qpfSnowWidget)"
+
 #+",🌧:\(.night.qpf),❄\(.night.qpfSnow)\", ⅔," 
 
-+ ",⛅"+(if .day.cloudCover == 100 then "💯" else .day.cloudCover//"--" end|tostring)
+#+ ",⛅"+(if .day.cloudCover == 100 then "💯" else .day.cloudCover//"--" end|tostring) + "%"
 
 #+","+(.day.wxPhraseShort//"-") 
 #+ ", 🝯 \(.night.wxPhraseShort)"
