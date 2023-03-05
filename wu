@@ -29,9 +29,9 @@ fetch_data() {
 		| jq -r '.[] | select(.type=="v3/wx/forecast/daily/10day") | .data' \
 		> "data/v3-wx-forecast-daily-10day.${_state}-${_loc}.json"
 
-#	cat "data/${_state}-${_loc}.json" \
-#		| jq -r '.[] | select(.type=="v3/wx/forecast/hourly/15day") | .data' \
-#		> "data/v3-wx-forecast-hourly-15day.${_state}-${_loc}.json"
+	cat "data/${_state}-${_loc}.json" \
+		| jq -r '.[] | select(.type=="v3/wx/forecast/hourly/15day") | .data' \
+		> "data/v3-wx-forecast-hourly-15day.${_state}-${_loc}.json"
 
 
 }
