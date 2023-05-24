@@ -38,9 +38,19 @@ def precipChanceWidget(per):
 	)		
 	;
 
+
+
+#def qpf(amt): $ENV;
+
+
 #def qpfWidget(amt): "🌧:\(amt) "+fraction(amt);
-def qpfWidget(amt): ( if amt > 0.05 then "🌧:"+fraction(amt) else "" end );
 #def qpfSnowWidget(amt): "❄:\(amt) "+fraction(amt);
+#def qpfWidget(amt): ( if amt > 0.05 then "🌧:"+fraction(amt) else s end );
+
+def qpfWidget(amt; always_show_icon): (if amt > 0.05 then "🌧:"+fraction(amt) elif always_show_icon == true then "🌧 :--" else "" end );
+def qpfWidget(amt): qpfWidget(amt; false);
+
+
 def qpfSnowWidget(amt): ( if amt > 0.05 then "❄:"+fraction(amt) else "" end );
 def cloudCoverWidget(per):
 	("⛅" + 
