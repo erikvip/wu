@@ -22,7 +22,8 @@ def fraction(dec):
 		 elif $rem >= 0.86 then "⅞"		 		 
 		 else ""
 		end)|tostring |
-		( if . == "" then "0" else . end) | tostring + "″"
+		( if env._WU_OPT_DECIMAL == "1" then $rem else . end ) |
+		( if . == "" then "0" else . end) | tostring + "″" 
 	;
 
 def temperatureWidget(low; high):

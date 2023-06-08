@@ -9,9 +9,23 @@ _WU_DEFAULT_CITY="mad-river";
 _WU_DEFAULT_STATE="ca";
 _WU_TEMPLATE="text";
 
+export _WU_OPT_DECIMAL=0;
+export _WU_OPT_DEBUG=0;
+
+PARSED_OPTIONS=$( getopt -o "de" --long "debug,decimal" -- "$@" )
+eval set -- "$PARSED_OPTIONS"
+while [[ ! -z "$1" ]]; do
+	case "$1" in
+		-d|--debug) export _WU_OPT_DEBUG=1; shift;;
+		-e|--decimal) export _WU_OPT_DECIMAL=1; shift;;
+		--) shift; break;;
+	esac
+done;
+
 _loc=${1:-$_WU_DEFAULT_CITY}; 
 _state=${2:-$_WU_DEFAULT_STATE}; 
 
+[ "$_WU_OPT_DEBUG" -eq 1 ] && echo -ne "Options debug: $_WU_OPT_DEBUG decimal: $_WU_OPT_DECIMAL city:$_loc state:$_state\n";
 # Gather weather data from wunderground and parse
 fetch_data() {
 	#wget -q --show-progress --progress=bar --user-agent="Chrome" -O "data/${_loc}" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
@@ -60,7 +74,8 @@ main() {
 	# Check expiration of locally cached weather data
 	_exp=$(cat $_D/data/${_state}-${_loc}.json | jq '[ .[] | select(.type=="v3/wx/observations/current") | .data .expirationTimeUtc ] | max');
 	_cur=$(date --utc '+%s');
-	if [[ "$_exp" < "$_cur" ]]; then	
+	_diff=$(( $_exp - $_cur ))
+	if [[ $_diff -le 0 ]]; then
 		stderr "Data expired for ${_loc}. Exp: $_exp Cur: "
 		fetch_data
 	fi
