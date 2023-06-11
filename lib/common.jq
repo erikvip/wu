@@ -51,6 +51,13 @@ def precipChanceWidget(per):
 def qpfWidget(amt; always_show_icon): (if amt > 0.05 then "🌧:"+fraction(amt) elif always_show_icon == true then "🌧 :--" else "" end );
 def qpfWidget(amt): qpfWidget(amt; false);
 
+def thunderWidget(i):
+	(if
+		i == 1 then "🌩"
+		elif i == 2 then "🗲"
+		else " "
+	end)
+	;
 
 def qpfSnowWidget(amt): ( if amt > 0.05 then "❄:"+fraction(amt) else "" end );
 def cloudCoverWidget(per):
