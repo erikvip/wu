@@ -11,13 +11,15 @@ _WU_TEMPLATE="text";
 
 export _WU_OPT_DECIMAL=0;
 export _WU_OPT_DEBUG=0;
+export _WU_OPT_LEGEND=0;
 
-PARSED_OPTIONS=$( getopt -o "de" --long "debug,decimal" -- "$@" )
+PARSED_OPTIONS=$( getopt -o "lde" --long "legend,debug,decimal" -- "$@" )
 eval set -- "$PARSED_OPTIONS"
 while [[ ! -z "$1" ]]; do
 	case "$1" in
 		-d|--debug) export _WU_OPT_DEBUG=1; shift;;
 		-e|--decimal) export _WU_OPT_DECIMAL=1; shift;;
+		-l|--legend) export _WU_OPT_LEGEND=1; shift;;
 		--) shift; break;;
 	esac
 done;
@@ -30,7 +32,6 @@ _state=${2:-$_WU_DEFAULT_STATE};
 fetch_data() {
 	#wget -q --show-progress --progress=bar --user-agent="Chrome" -O "data/${_loc}" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
 	wget -q --user-agent="Chrome" -O "$_D/data/${_state}-${_loc}.html" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
-
 
 	cat "$_D/data/${_state}-${_loc}.html" \
 		| egrep -o '<script [^>]*type="application/json">.*</script>' \
@@ -62,7 +63,12 @@ show_forecast() {
 
 		cat "${BASEDIR}/data/${_state}-${_loc}.forecast.json" \
 		| jq -L "$_D/lib" -r -f "${BASEDIR}/lib/forecast-template.text.js" \
-		| column -s',' -t		
+		| column -s',' -t
+
+		if [[ "$_WU_OPT_LEGEND" -eq 1 ]]; then
+			hr 55 false
+			cat "${BASEDIR}/lib/legend.txt" | column -s ',' -t
+		fi
 }
 
 main() {
@@ -75,17 +81,34 @@ main() {
 	_exp=$(cat $_D/data/${_state}-${_loc}.json | jq '[ .[] | select(.type=="v3/wx/observations/current") | .data .expirationTimeUtc ] | max');
 	_cur=$(date --utc '+%s');
 	_diff=$(( $_exp - $_cur ))
-	if [[ $_diff -le 0 ]]; then
-		stderr "Data expired for ${_loc}. Exp: $_exp Cur: "
+	debug "Data expiration check for ${_loc}. Exp: $_exp Cur: ${_cur} Diff: ${_diff}"
+	if [[ $_diff < -300 ]]; then
+		stderr "Data expired for ${_loc}."
+		#stderr "Data expired for ${_loc}. Exp: $_exp Cur: ${_cur} Diff: ${_diff}"
 		fetch_data
-	fi
-
+	fi;
+	
 	show_forecast
+	
+
+	
+}
+
+hr() {
+	local _span=${1:-100};
+	local _max=$(tput cols);
+	local _width=$(( $_max * $_span / 100));
+	local _prebreak=${2:-true};
+	if [[ $_prebreak == true ]]; then echo; fi
+	#printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); 
+	printf '\xe2\x80\x95%.0s' $( seq 1 $_width ); 
+	echo; 
 }
 
 
-
-
+debug() {
+	if [[ "$_WU_OPT_DEBUG" == 1 ]]; then stderr "$@"; fi
+}
 
 # Write messages to stderr
 stderr() {

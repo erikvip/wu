@@ -1,0 +1,4 @@
+🌕 Full Moon,🌑 New Moon,🌩  Lightning Possible,🗲  Lightning Expected
+↑  Temp High,↓  Temp Low,⛅ Cloud Cover,🌧  Precip. Amt
+㏂ Day time,㏘ Night time,❄  Snow Amt,🌫 Wind Speed 
+
