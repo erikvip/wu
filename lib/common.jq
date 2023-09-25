@@ -33,8 +33,11 @@ def precipChanceWidget(per):
 	(
 		(if per == 100 	then "💯 " 
 		elif per == null then "-- "
-		elif per < 10 	then " \(per)٪"
-		else 			"\(per)٪" 
+#		elif per < 10 	then " \(per)٪"
+#		else 			"\(per)٪" 
+		elif per < 10 	then " \(per)%"
+		else 			"\(per)%" 
+
 		end)
 	)		
 	;
@@ -48,7 +51,7 @@ def precipChanceWidget(per):
 #def qpfSnowWidget(amt): "❄:\(amt) "+fraction(amt);
 #def qpfWidget(amt): ( if amt > 0.05 then "🌧:"+fraction(amt) else s end );
 
-def qpfWidget(amt; always_show_icon): (if amt > 0.05 then "🌧:"+fraction(amt) elif always_show_icon == true then "🌧 :--" else "" end );
+def qpfWidget(amt; always_show_icon): (if amt > 0.00 then "🌧:"+fraction(amt) elif always_show_icon == true then "🌧 :--" else "" end );
 def qpfWidget(amt): qpfWidget(amt; false);
 
 def thunderWidget(i):
@@ -59,12 +62,23 @@ def thunderWidget(i):
 	end)
 	;
 
+def windWidget(speed; direction):
+	(
+		(if speed == null then "🌫:-- --"
+		elif speed < 10   then "🌫: \(speed) \(direction)"
+		else 				   "🌫:\(speed) \(direction)" 
+		end)
+	)
+	;
+
+
 def qpfSnowWidget(amt): ( if amt > 0.05 then "❄:"+fraction(amt) else "" end );
 def cloudCoverWidget(per):
 	("⛅" + 
 		(if per == 100 then "💯 " 
 		elif per == null then "-- "
-		else (per//"--" | tostring + "٪")
+		else (per//"--" | tostring + "%")
+#		else (per//"--" | tostring + "٪")
 		end) 
 	)
 	;

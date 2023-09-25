@@ -3,6 +3,18 @@
 set -o nounset  # Fail when access undefined variable
 set -o errexit  # Exit when a command fails
 
+# Check for symlinked options in filename, like wu_city-name_state
+if [[ $(basename "$0") != $(basename $(realpath "$0")) ]]; then
+	_parts=$(echo `basename "$0"` | awk -F'_' '{ ORS=" "; for (i=1; i<=NF; ++i) { print $i; };}' );
+	eval "_wu_parts=(${_parts})";
+	_cmd="$(realpath "$0") ${_wu_parts[@]:1}";
+#	echo "Executing $_cmd";
+	eval $_cmd;
+	exit;
+fi	
+
+
+
 BASEDIR=$(dirname `realpath $0`);
 _D="${BASEDIR}";
 _WU_DEFAULT_CITY="mad-river";
@@ -82,7 +94,7 @@ main() {
 	_cur=$(date --utc '+%s');
 	_diff=$(( $_exp - $_cur ))
 	debug "Data expiration check for ${_loc}. Exp: $_exp Cur: ${_cur} Diff: ${_diff}"
-	if [[ $_diff < -300 ]]; then
+	if [[ $_diff -lt -300 ]]; then
 		stderr "Data expired for ${_loc}."
 		#stderr "Data expired for ${_loc}. Exp: $_exp Cur: ${_cur} Diff: ${_diff}"
 		fetch_data
@@ -90,7 +102,6 @@ main() {
 	
 	show_forecast
 	
-
 	
 }
 
@@ -105,7 +116,7 @@ hr() {
 	echo; 
 }
 
-
+#―――――――――――――――――
 debug() {
 	if [[ "$_WU_OPT_DEBUG" == 1 ]]; then stderr "$@"; fi
 }
