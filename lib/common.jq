@@ -2,7 +2,7 @@ def fraction(dec):
 	dec//0 | (floor|tostring) as $int | 
 	("0."+(.|tostring|split(".")[1]) )| tonumber as $rem |
 		(if $int|tonumber > 0 then $int else "" end) +
-		(if $rem < 0.05 then ""
+		(if $rem < 0.05 then $rem|tostring
 		 elif $rem > 0.05 and $rem <=0.10 then "⅒ "
 		 elif $rem > 0.10 and $rem < 0.14 then "⅛"
 		 elif $rem >= 0.14 and $rem <= 0.15 then "⅐"

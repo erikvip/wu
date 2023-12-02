@@ -43,7 +43,9 @@ _state=${2:-$_WU_DEFAULT_STATE};
 # Gather weather data from wunderground and parse
 fetch_data() {
 	#wget -q --show-progress --progress=bar --user-agent="Chrome" -O "data/${_loc}" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
-	wget -q --user-agent="Chrome" -O "$_D/data/${_state}-${_loc}.html" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
+	_wget_level="-v";
+	[ "$_WU_OPT_DEBUG" -ne 1 ] && _wget_level="-q ";
+	wget $_wget_level --user-agent="Chrome" -O "$_D/data/${_state}-${_loc}.html" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
 
 	cat "$_D/data/${_state}-${_loc}.html" \
 		| egrep -o '<script [^>]*type="application/json">.*</script>' \
@@ -62,6 +64,18 @@ fetch_data() {
 		> "$_D/data/v3-wx-forecast-hourly-15day.${_state}-${_loc}.json"
 
 
+}
+
+show_new_forecast() {
+	# Create bash assocaitve array from JSON forecast data
+	declare -A overview
+
+	while IFS=$'\n' read -r v; do
+		eval "$v";
+	done < <(cat "${BASEDIR}/data/${_state}-${_loc}.forecast.json" \
+		| jq -r '.[0] | to_entries[] | select(.value | type!="object") | "overview[\"\(.key)\"]=\(.value|@sh)"')
+
+	echo ${overview["temperatureWidget"]};
 }
 
 show_forecast() {
@@ -86,6 +100,7 @@ show_forecast() {
 main() {
 
 	if [ ! -e "$_D/data/${_state}-${_loc}.json" ]; then
+		debug "$_D/data/${_state}-${_loc}.json does not exist."
 		fetch_data
 	fi
 		
