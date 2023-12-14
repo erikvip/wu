@@ -51,7 +51,7 @@ fetch_data() {
 		| egrep -o '<script [^>]*type="application/json">.*</script>' \
 		| sed 's/<[^>]*>//g' \
 		| sed 's/\&q\;/"/g' \
-		| jq '.[][] as $d | $d | select(type == "object") as $o | select( .url | ( contains("/v3/wx/","/v2/pws")  ) ) as $i | $i.url | ( split("?") | .[0] | split("/")[3:8] | join("/")) as $type | {"type":"\($type)", "data":$i.value} as $done | $done' \
+		| jq '.[][] as $d | $d | select(type == "object") as $o | select( .url | ( index("/v3/wx/","/v2/pws", "/v2/astro")  ) ) as $i | $i.url | ( split("?") | .[0] | split("/")[3:8] | join("/")) as $type | {"type":"\($type)", "data":$i.value} as $done | $done' \
 		| jq --slurp '.' \
 		> "$_D/data/${_state}-${_loc}.json"
 
@@ -106,6 +106,10 @@ main() {
 		
 	# Check expiration of locally cached weather data
 	_exp=$(cat $_D/data/${_state}-${_loc}.json | jq '[ .[] | select(.type=="v3/wx/observations/current") | .data .expirationTimeUtc ] | max');
+	if [[ ${_exp} == null ]]; then 
+		_exp=0; 
+	fi
+
 	_cur=$(date --utc '+%s');
 	_diff=$(( $_exp - $_cur ))
 	debug "Data expiration check for ${_loc}. Exp: $_exp Cur: ${_cur} Diff: ${_diff}"
