@@ -1,8 +1,9 @@
 def fraction(dec):
+	dec as $orig |
 	dec//0 | (floor|tostring) as $int | 
 	("0."+(.|tostring|split(".")[1]) )| tonumber as $rem |
 		(if $int|tonumber > 0 then $int else "" end) +
-		(if $rem < 0.05 then $rem|tostring
+		(if $rem < 0.05 and $rem > 0.01 then "."+(.|split(".")[1])
 		 elif $rem > 0.05 and $rem <=0.10 then "⅒ "
 		 elif $rem > 0.10 and $rem < 0.14 then "⅛"
 		 elif $rem >= 0.14 and $rem <= 0.15 then "⅐"
@@ -22,7 +23,7 @@ def fraction(dec):
 		 elif $rem >= 0.86 then "⅞"		 		 
 		 else ""
 		end)|tostring |
-		( if env._WU_OPT_DECIMAL == "1" then $rem else . end ) |
+		( if env._WU_OPT_DECIMAL == "1" then $orig else . end ) |
 		( if . == "" then "0" else . end) | tostring + "″" 
 	;
 
