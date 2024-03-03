@@ -103,3 +103,13 @@ def moonPhaseWidget(code):
 	else code 
 	end)
 	;
+
+
+def rpad(s; len; chr):
+#	(str | length) as $strlen |
+#	len - $strlen|tonumber as $diff |
+	s + chr * (len - (s|length))
+	;
+
+
+def rpad(s; len): rpad(s;len;" ");

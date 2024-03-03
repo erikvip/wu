@@ -20,18 +20,36 @@ _D="${BASEDIR}";
 _WU_DEFAULT_CITY="mad-river";
 _WU_DEFAULT_STATE="ca";
 _WU_TEMPLATE="text";
+COLUMNS=$(stty size | cut -d' ' -f2);
 
+#_WU_OPT_SIZE="full";
+#if [[ "$COLUMNS" < 100 && "$COLUMNS" > 70 ]]; then
+#	_WU_OPT_SIZE="compact";
+#fi
+#if [[ "$COLUMNS" < 70 ]]; then
+#	_WU_OPT_SIZE="mini";
+#fi
+
+#export _WU_OPT_SIZE;
 export _WU_OPT_DECIMAL=0;
 export _WU_OPT_DEBUG=0;
 export _WU_OPT_LEGEND=0;
+export _WU_OPT_TOTALS=0;
+export _WU_OPT_DAYNIGHT=0;
 
-PARSED_OPTIONS=$( getopt -o "lde" --long "legend,debug,decimal" -- "$@" )
+[ "$COLUMNS" -lt 105 -a "$COLUMNS" -gt 85 ] && _WU_OPT_DAYNIGHT=1;
+[ "$COLUMNS" -lt 85 ] && _WU_OPT_TOTALS=1;
+
+PARSED_OPTIONS=$( getopt -o "ldet" --long "daynight,totals,legend,debug,decimal" -- "$@" )
 eval set -- "$PARSED_OPTIONS"
 while [[ ! -z "$1" ]]; do
 	case "$1" in
 		-d|--debug) export _WU_OPT_DEBUG=1; shift;;
 		-e|--decimal) export _WU_OPT_DECIMAL=1; shift;;
 		-l|--legend) export _WU_OPT_LEGEND=1; shift;;
+		-t|--totals) export _WU_OPT_TOTALS=1; shift;;
+		--daynight) export _WU_OPT_DAYNIGHT=1; shift;;
+
 		--) shift; break;;
 	esac
 done;
@@ -39,7 +57,7 @@ done;
 _loc=${1:-$_WU_DEFAULT_CITY}; 
 _state=${2:-$_WU_DEFAULT_STATE}; 
 
-[ "$_WU_OPT_DEBUG" -eq 1 ] && echo -ne "Options debug: $_WU_OPT_DEBUG decimal: $_WU_OPT_DECIMAL city:$_loc state:$_state\n";
+[ "$_WU_OPT_DEBUG" -eq 1 ] && echo -ne "Options debug: $_WU_OPT_DEBUG decimal: $_WU_OPT_DECIMAL city:$_loc state:$_state _WU_OPT_SIZE: $_WU_OPT_SIZE \n";
 # Gather weather data from wunderground and parse
 fetch_data() {
 	#wget -q --show-progress --progress=bar --user-agent="Chrome" -O "data/${_loc}" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
@@ -88,8 +106,8 @@ show_forecast() {
 		| jq -s . > "${BASEDIR}/data/${_state}-${_loc}.forecast.json"
 
 		cat "${BASEDIR}/data/${_state}-${_loc}.forecast.json" \
-		| jq -L "$_D/lib" -r -f "${BASEDIR}/lib/forecast-template.text.js" \
-		| column -s',' -t
+		| jq -L "$_D/lib" -r -f "${BASEDIR}/lib/forecast-template.text.js" 
+		#| column -s',' -t
 
 		if [[ "$_WU_OPT_LEGEND" -eq 1 ]]; then
 			hr 55 false
@@ -149,3 +167,4 @@ stderr() {
 
 main
 exit 0
+	
