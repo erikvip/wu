@@ -59,7 +59,7 @@ def thunderWidget(i):
 	(if
 		i == 1 then "🌩"
 		elif i == 2 then "🗲"
-		else " "
+		else ""
 	end)
 	;
 

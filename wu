@@ -57,7 +57,7 @@ done;
 _loc=${1:-$_WU_DEFAULT_CITY}; 
 _state=${2:-$_WU_DEFAULT_STATE}; 
 
-[ "$_WU_OPT_DEBUG" -eq 1 ] && echo -ne "Options debug: $_WU_OPT_DEBUG decimal: $_WU_OPT_DECIMAL city:$_loc state:$_state _WU_OPT_SIZE: $_WU_OPT_SIZE \n";
+[ "$_WU_OPT_DEBUG" -eq 1 ] && echo -ne "Options debug: $_WU_OPT_DEBUG decimal: $_WU_OPT_DECIMAL city:$_loc state:$_state \n";
 # Gather weather data from wunderground and parse
 fetch_data() {
 	#wget -q --show-progress --progress=bar --user-agent="Chrome" -O "data/${_loc}" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
