@@ -28,7 +28,18 @@ def fraction(dec):
 	;
 
 def temperatureWidget(low; high):
-	("↑" + (high // "--"|tostring) + "℉ ↓" + (low // "--"|tostring) + "℉")
+	(if high == null then "--"
+		elif high < 10 and high >= 0 then " " + (high|tostring)
+		else high
+	end) as $high |
+
+	(if low == null then "--"
+		elif low < 10 and low >= 0 then " " + (low|tostring)
+		else low
+	end) as $low |
+
+
+	("↑" + ($high // "--"|tostring) + "℉ ↓" + ($low // "--"|tostring) + "℉")
 	;
 def precipChanceWidget(per):
 	(
@@ -59,14 +70,14 @@ def thunderWidget(i):
 	(if
 		i == 1 then "🌩"
 		elif i == 2 then "🗲"
-		else ""
+		else " "
 	end)
 	;
 
 def windWidget(speed; direction):
 	(
 		(if speed == null then "🌫:-- --"
-		elif speed < 10   then "🌫: \(speed) \(direction)"
+		elif speed < 10   then "🌬: \(speed) \(direction)"
 		else 				   "🌫:\(speed) \(direction)" 
 		end)
 	)
@@ -78,6 +89,7 @@ def cloudCoverWidget(per):
 	("⛅" + 
 		(if per == 100 then "💯 " 
 		elif per == null then "-- "
+		elif per < 10 then (" " + (per|tostring) + "%")
 		else (per//"--" | tostring + "%")
 #		else (per//"--" | tostring + "٪")
 		end) 
@@ -85,7 +97,8 @@ def cloudCoverWidget(per):
 	;
 def moonPhaseWidget(code):
 	(if code == "F" 
-		then "🌕"
+#		then "🌕"
+		then "🌝"
 	elif code == "WNC" 
 		then "🌘" 
 	elif code == "LQ"
@@ -93,7 +106,8 @@ def moonPhaseWidget(code):
 	elif code == "WNG"
 		then "🌖"
 	elif code == "N" 
-		then "🌑" 
+		then "🌚"
+#		then "🌑" 
 	elif code == "WXC" 
 		then "🌒" 
 	elif code == "FQ"
@@ -104,12 +118,15 @@ def moonPhaseWidget(code):
 	end)
 	;
 
-
-def rpad(s; len; chr):
-#	(str | length) as $strlen |
-#	len - $strlen|tonumber as $diff |
-	s + chr * (len - (s|length))
-	;
-
+def rpad(s; len; chr): s + chr * (len - (s|length));
+def lpad(s; len; chr): chr * (len - (s|length)) + s;
 
 def rpad(s; len): rpad(s;len;" ");
+
+
+#def rpad(s; len; chr):
+#	(str | length) as $strlen |
+#	len - $strlen|tonumber as $diff |
+#	s + chr * (len - (s|length))
+#	;
+
