@@ -3,21 +3,23 @@
 set -o nounset  # Fail when access undefined variable
 set -o errexit  # Exit when a command fails
 
-# Check for symlinked options in filename, like wu_city-name_state
+#
+# Check for symlinked options in filename
+# like wu_city-name_state, can also have options specified. 
+# Examples:
+# ./wu_ca_san-diego_--decimal_--daynight_--debug symlinked to ./wu
+# 
 if [[ $(basename "$0") != $(basename $(realpath "$0")) ]]; then
 	_parts=$(echo `basename "$0"` | awk -F'_' '{ ORS=" "; for (i=1; i<=NF; ++i) { print $i; };}' );
 	eval "_wu_parts=(${_parts})";
 	_cmd="$(realpath "$0") ${_wu_parts[@]:1}";
-#	echo "Executing $_cmd";
 	eval $_cmd;
 	exit;
 fi	
 
-
-
 BASEDIR=$(dirname `realpath $0`);
 _D="${BASEDIR}";
-_WU_DEFAULT_CITY="mad-river";
+_WU_DEFAULT_CITY="post-mountain";
 _WU_DEFAULT_STATE="ca";
 _WU_TEMPLATE="text";
 COLUMNS=$(stty size | cut -d' ' -f2);
@@ -36,11 +38,13 @@ export _WU_OPT_DEBUG=0;
 export _WU_OPT_LEGEND=0;
 export _WU_OPT_TOTALS=0;
 export _WU_OPT_DAYNIGHT=0;
+export _WU_OPT_SKIP_DOWNLOAD=0;
+export _WU_OPT_ASTRO=0;
 
 [ "$COLUMNS" -lt 105 -a "$COLUMNS" -gt 85 ] && _WU_OPT_DAYNIGHT=1;
 [ "$COLUMNS" -lt 85 ] && _WU_OPT_TOTALS=1;
 
-PARSED_OPTIONS=$( getopt -o "ldet" --long "daynight,totals,legend,debug,decimal" -- "$@" )
+PARSED_OPTIONS=$( getopt -o "ldeta" --long "astro,skip-download,daynight,totals,legend,debug,decimal" -- "$@" )
 eval set -- "$PARSED_OPTIONS"
 while [[ ! -z "$1" ]]; do
 	case "$1" in
@@ -48,8 +52,9 @@ while [[ ! -z "$1" ]]; do
 		-e|--decimal) export _WU_OPT_DECIMAL=1; shift;;
 		-l|--legend) export _WU_OPT_LEGEND=1; shift;;
 		-t|--totals) export _WU_OPT_TOTALS=1; shift;;
+		--skip-download) export _WU_OPT_SKIP_DOWNLOAD=1; shift;;
 		--daynight) export _WU_OPT_DAYNIGHT=1; shift;;
-
+		-a|--astro) export _WU_OPT_ASTRO=1; shift;;
 		--) shift; break;;
 	esac
 done;
@@ -58,12 +63,21 @@ _loc=${1:-$_WU_DEFAULT_CITY};
 _state=${2:-$_WU_DEFAULT_STATE}; 
 
 [ "$_WU_OPT_DEBUG" -eq 1 ] && echo -ne "Options debug: $_WU_OPT_DEBUG decimal: $_WU_OPT_DECIMAL city:$_loc state:$_state \n";
-# Gather weather data from wunderground and parse
+
+#################################################
+## Gather weather data from wunderground and parse
+##
+#################################################
 fetch_data() {
 	#wget -q --show-progress --progress=bar --user-agent="Chrome" -O "data/${_loc}" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
 	_wget_level="-v";
 	[ "$_WU_OPT_DEBUG" -ne 1 ] && _wget_level="-q ";
-	wget $_wget_level --user-agent="Chrome" -O "$_D/data/${_state}-${_loc}.html" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
+
+	if [[ "${_WU_OPT_SKIP_DOWNLOAD}" -eq 0 ]]; then
+		wget $_wget_level --user-agent="Chrome" -O "$_D/data/${_state}-${_loc}.html" "https://www.wunderground.com/forecast/us/${_state}/${_loc}"
+	else
+		debug "Skipping download"
+	fi
 
 	cat "$_D/data/${_state}-${_loc}.html" \
 		| egrep -o '<script [^>]*type="application/json">.*</script>' \
@@ -81,7 +95,9 @@ fetch_data() {
 		| jq -r '.[] | select(.type=="v3/wx/forecast/hourly/15day") | .data' \
 		> "$_D/data/v3-wx-forecast-hourly-15day.${_state}-${_loc}.json"
 
-
+	cat "$_D/data/${_state}-${_loc}.json" \
+		| jq -r '.[] | select(.type=="v2/astro") | .data' \
+		> "$_D/data/v2-astro.${_state}-${_loc}.json"
 }
 
 show_new_forecast() {
@@ -97,28 +113,37 @@ show_new_forecast() {
 }
 
 show_forecast() {
+#	echo "<txt>wunderground</txt><tool><span allow_breaks='false' weight='Bold' fgcolor='White' bgcolor='Black' size='150%' face='DejaVu Sans Mono Bold'><tt>"
 
 	echo '[0,1,2,3,4,5,6,7,8,9,10]' \
 		| jq  \
 			-L "$_D/lib" \
 		    --slurpfile w "${BASEDIR}/data/v3-wx-forecast-daily-10day.${_state}-${_loc}.json" \
-		    -f "${BASEDIR}/lib/forecast-daily-10day.txt.js"  \
+		    --slurpfile a "${BASEDIR}/data/v2-astro.${_state}-${_loc}.json" \
+		    -f "${BASEDIR}/lib/forecast-daily-10day.txt.js" \
 		| jq -s . > "${BASEDIR}/data/${_state}-${_loc}.forecast.json"
+		#exit 1;
 
 		cat "${BASEDIR}/data/${_state}-${_loc}.forecast.json" \
-		| jq -L "$_D/lib" -r -f "${BASEDIR}/lib/forecast-template.text.js" 
+		| jq \
+			-L "$_D/lib" \
+			--raw-output \
+			--slurpfile a "${BASEDIR}/data/v2-astro.${_state}-${_loc}.json" \
+			-f "${BASEDIR}/lib/forecast-template.text.js" 
 		#| column -s',' -t
 
 		if [[ "$_WU_OPT_LEGEND" -eq 1 ]]; then
 			hr 55 false
 			cat "${BASEDIR}/lib/legend.txt" | column -s ',' -t
 		fi
+	echo "</tt></span></tool>"
 }
 
 main() {
 
 	if [ ! -e "$_D/data/${_state}-${_loc}.json" ]; then
 		debug "$_D/data/${_state}-${_loc}.json does not exist."
+		[ "${_WU_OPT_SKIP_DOWNLOAD}" -eq 1 ] && errorexit "Error: --skip-download cannot find any cached downloads for '${_loc@U} ${_state@U}'\n$_D/data/${_state}-${_loc}.json does not exist."; 
 		fetch_data
 	fi
 		
@@ -138,8 +163,6 @@ main() {
 	fi;
 	
 	show_forecast
-	
-	
 }
 
 hr() {
@@ -161,7 +184,12 @@ debug() {
 # Write messages to stderr
 stderr() {
 	local _msg="$@";
-	(>&2 echo "${_msg}")
+	(>&2 echo -e "${_msg}")
+}
+
+errorexit() {
+	stderr $*
+	exit 1;
 }
 
 

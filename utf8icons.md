@@ -31,12 +31,12 @@ LIGHTNING
 ⛅
 ⛔
 ❄
-🌄
-🌃
-🌅
-🌆
-🌇
-🌉
+🌄 Sunrise over mountains
+🌃 Night w/ stars
+🌅 Sunrise
+🌆 Cityscape / dusk 
+🌇 Sunset over city
+🌉 Bridge at night
 🌑
 🌒
 🌓

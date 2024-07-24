@@ -118,11 +118,35 @@ def moonPhaseWidget(code):
 	end)
 	;
 
+def abbr_hms(t): "\(t.hours)h\(t.minutes)m";# \(t.seconds)s";
+def abbr_hms: abbr_hms(.);
+
 def rpad(s; len; chr): s + chr * (len - (s|length));
 def lpad(s; len; chr): chr * (len - (s|length)) + s;
 
 def rpad(s; len): rpad(s;len;" ");
 
+
+def parselocaldate:
+	( capture("(?<D>[0-9\\-]+)T(?<T>[0-9:]+).(?<ns>[0-9]{3})(?<Z>[0-9:\\-]+)") as {$D, $T, $ns, $Z}
+	|"\($D)T\($T)\($Z)"|strptime("%Y-%m-%dT%H:%M:%S%z")|mktime)
+;
+
+
+
+# replace fromdateiso8601 and fromdate with ones that supports fractional seconds
+# NOTE: does not support timezones
+# Usage:
+# $ jq -n -L . 'include "fromdate"; "2024-02-13T11:10:32.123Z" | fromdate'
+# 1707822632.123
+#def fromdateiso8601:
+#  ( capture("(?<y>\\d+)-(?<m>\\d+)-(?<d>\\d+)T(?<H>\\d+):(?<M>\\d+):(?<S>\\d+)(?<F>\\.\\d+)?Z") as {$y,$m,$d,$H,$M,$S,$F}
+#  | [$y,$m,$d,$H,$M,$S,0,0]
+#  | map(tonumber)
+#  | .[1] |= .-1 # month starts at 0
+#  | mktime + ($F | if . then tonumber else 0 end)
+#  ) // error("date \"\(.)\" does not match format");
+#def fromdate: fromdateiso8601;
 
 #def rpad(s; len; chr):
 #	(str | length) as $strlen |
