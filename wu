@@ -1,4 +1,5 @@
 #!/bin/bash
+export LC_ALL=en_US.UTF-8
 
 set -o nounset  # Fail when access undefined variable
 set -o errexit  # Exit when a command fails
