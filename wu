@@ -41,11 +41,14 @@ export _WU_OPT_TOTALS=0;
 export _WU_OPT_DAYNIGHT=0;
 export _WU_OPT_SKIP_DOWNLOAD=0;
 export _WU_OPT_ASTRO=0;
+export _WU_OPT_HOURLY=0;
+export _WU_OPT_HEADER="";
+export _WU_OPT_FOOTER="";
 
 [ "$COLUMNS" -lt 105 -a "$COLUMNS" -gt 85 ] && _WU_OPT_DAYNIGHT=1;
 [ "$COLUMNS" -lt 85 ] && _WU_OPT_TOTALS=1;
 
-PARSED_OPTIONS=$( getopt -o "ldeta" --long "astro,skip-download,daynight,totals,legend,debug,decimal" -- "$@" )
+PARSED_OPTIONS=$( getopt -o "ldetar" --long "astro,skip-download,daynight,totals,legend,debug,decimal,hourly,header:,footer:" -- "$@" )
 eval set -- "$PARSED_OPTIONS"
 while [[ ! -z "$1" ]]; do
 	case "$1" in
@@ -56,6 +59,9 @@ while [[ ! -z "$1" ]]; do
 		--skip-download) export _WU_OPT_SKIP_DOWNLOAD=1; shift;;
 		--daynight) export _WU_OPT_DAYNIGHT=1; shift;;
 		-a|--astro) export _WU_OPT_ASTRO=1; shift;;
+		-r|--hourly) export _WU_OPT_HOURLY=1; shift;;
+		--header) shift; export _WU_OPT_HEADER="$1"; shift;;
+		--footer) shift; export _WU_OPT_FOOTER="$1"; shift;;
 		--) shift; break;;
 	esac
 done;
@@ -114,7 +120,8 @@ show_new_forecast() {
 }
 
 show_forecast() {
-#	echo "<txt>wunderground</txt><tool><span allow_breaks='false' weight='Bold' fgcolor='White' bgcolor='Black' size='150%' face='DejaVu Sans Mono Bold'><tt>"
+	
+	[ -n "${_WU_OPT_HEADER}" ] && echo "${_WU_OPT_HEADER}"
 
 	echo '[0,1,2,3,4,5,6,7,8,9,10]' \
 		| jq  \
@@ -123,7 +130,6 @@ show_forecast() {
 		    --slurpfile a "${BASEDIR}/data/v2-astro.${_state}-${_loc}.json" \
 		    -f "${BASEDIR}/lib/forecast-daily-10day.txt.js" \
 		| jq -s . > "${BASEDIR}/data/${_state}-${_loc}.forecast.json"
-		#exit 1;
 
 		cat "${BASEDIR}/data/${_state}-${_loc}.forecast.json" \
 		| jq \
@@ -137,7 +143,14 @@ show_forecast() {
 			hr 55 false
 			cat "${BASEDIR}/lib/legend.txt" | column -s ',' -t
 		fi
-	echo "</tt></span></tool>"
+	[ -n "${_WU_OPT_FOOTER}" ] && echo "${_WU_OPT_FOOTER}"
+}
+
+show_hourly_forecast() {
+
+	cat "${BASEDIR}/data/v3-wx-forecast-hourly-15day.ca-post-mountain.json" \
+		| jq --arg opts "{}" -r -f "${BASEDIR}/lib/forecast-hourly.js" \
+		| column -s, -t
 }
 
 main() {
@@ -159,11 +172,14 @@ main() {
 	debug "Data expiration check for ${_loc}. Exp: $_exp Cur: ${_cur} Diff: ${_diff}"
 	if [[ $_diff -lt -300 ]]; then
 		stderr "Data expired for ${_loc}."
-		#stderr "Data expired for ${_loc}. Exp: $_exp Cur: ${_cur} Diff: ${_diff}"
 		fetch_data
 	fi;
-	
-	show_forecast
+
+	if [[ "$_WU_OPT_HOURLY" != "1" ]]; then
+		show_forecast
+	else
+		show_hourly_forecast
+	fi
 }
 
 hr() {
